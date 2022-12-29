@@ -11,6 +11,8 @@ const trpc = createTRPCProxyClient<AppRouter>({
 
 
 (async function run() {
+    // Try to rename the sayHello method name
+    // And try to go to the "endpoint" definition
     const response = await trpc.sayHello.query('Romain');
 
     console.log(response);

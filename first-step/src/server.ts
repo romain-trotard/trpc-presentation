@@ -14,6 +14,7 @@ const appRouter = trpc.router({
             throw new Error(`Should provide a string username got ${userName}`);
         })
         .query((request) => {
+            // Get the input value from the request
             const { input: userName } = request;
 
             return `Hello ${userName}`;
