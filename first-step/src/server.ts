@@ -24,8 +24,12 @@ const appRouter = trpc.router({
 // Type to use in the front
 export type AppRouter = typeof appRouter;
 
+
+
 // Create simple HTTP server
-createHTTPServer({
+const { port } = createHTTPServer({
     router: appRouter,
 }).listen(9000);
+
+console.log(`The server is running on the port ${port}`);
 
