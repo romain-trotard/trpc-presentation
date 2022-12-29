@@ -17,7 +17,6 @@ curl -X POST http://localhost:9000/addTodo -d '{"id":2,"name":"A Second todo"}'
 > **Note:** 
 > - Everything is done in memory, so when you restart the server you will lost 
 all the todos added
-> - no schema validator library used
 > - use `jq` to have a nice formatting in terminal
 
 ## How to run?
