@@ -1,15 +1,32 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useSnackbar } from "../components/notifications/SnackbarProvider";
 
 import { trpc } from "../utils/trpc";
 
 const EMPTY_ARRAY: any[] = [];
 let tempId = Number.MAX_SAFE_INTEGER;
 
+function getBase64(file: File) {
+    return new Promise<string>((resolve, reject) => {
+        var reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function() {
+            resolve(reader.result as string);
+            console.log(reader.result);
+        };
+        reader.onerror = function(error) {
+            reject(error);
+            console.log('Error: ', error);
+        };
+    });
+}
+
 const Home: NextPage = () => {
     const [inputValue, setInputValue] = useState('');
     const utils = trpc.useContext();
+    const { showSnackbar } = useSnackbar();
     const todos = trpc.todos.getAll.useQuery();
     const addTodoMutation = trpc.todos.addTodo.useMutation({
         onMutate: async (newTodo) => {
@@ -52,6 +69,17 @@ const Home: NextPage = () => {
             utils.todos.getAll.invalidate();
         }
     });
+    const uploadFileMutation = trpc.todos.uploadFile.useMutation({
+        onError: (error) => {
+            // Can use `error.data.code` or `error.data.httpStatus`
+            console.log('The error is', error.message);
+            showSnackbar(error.message);
+        },
+        onSettled: () => {
+            utils.todos.getAll.invalidate();
+        }
+    });
+    const uploadInputRef = useRef<HTMLInputElement>(null);
 
     if (todos.isError) {
         return <p>Error loading todos</p>
@@ -73,9 +101,28 @@ const Home: NextPage = () => {
             </Head>
             <main className="flex min-h-screen flex-col items-center bg-slate-50">
                 <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-                    <h1 className="text-5xl font-extrabold tracking-tight">
-                        TODOs tRPC
-                    </h1>
+                    <div className="flex justify-between w-full">
+                        <h1 className="text-5xl font-extrabold tracking-tight flex-1 text-center">
+                            TODOs tRPC
+                        </h1>
+                        <input type="file" className="hidden" ref={uploadInputRef} onChange={async () => {
+                            const uploadInput = uploadInputRef.current;
+                            const firstFile = uploadInput?.files?.[0];
+
+                            if (uploadInput && firstFile) {
+                                const content = await getBase64(firstFile);
+
+                                uploadFileMutation.mutate({ content });
+                                uploadInput.value = '';
+                            }
+                        }} />
+                        <button type="button"
+                            onClick={() => uploadInputRef.current?.click()}
+                            className="bg-transparent hover:bg-slate-400 text-slate-600 font-semibold hover:text-white py-2 px-4 border border-slate-400 hover:border-transparent rounded"
+                        >
+                            Upload a file
+                        </button>
+                    </div>
                     <div className="flex flex-col bg-white border w-2/4">
                         <input type="text"
                             placeholder="What do you need to do?"
