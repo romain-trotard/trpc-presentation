@@ -14,11 +14,9 @@ function getBase64(file: File) {
         reader.readAsDataURL(file);
         reader.onload = function() {
             resolve(reader.result as string);
-            console.log(reader.result);
         };
         reader.onerror = function(error) {
             reject(error);
-            console.log('Error: ', error);
         };
     });
 }
@@ -70,10 +68,12 @@ const Home: NextPage = () => {
         }
     });
     const uploadFileMutation = trpc.todos.uploadFile.useMutation({
+        onSuccess: () => {
+            showSnackbar({ message: 'TODOs are well imported', status: 'success' });
+        },
         onError: (error) => {
             // Can use `error.data.code` or `error.data.httpStatus`
-            console.log('The error is', error.message);
-            showSnackbar(error.message);
+            showSnackbar({ message: error.message, status: 'error' });
         },
         onSettled: () => {
             utils.todos.getAll.invalidate();

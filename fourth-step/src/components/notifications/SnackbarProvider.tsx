@@ -1,14 +1,20 @@
 import React, { ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
+type Snackbar = {
+    id: number;
+    message: string;
+    status: 'error' | 'success'
+}
+
 const SnackbarContext = React.createContext<{
-    showSnackbar: (message: string) => void;
+    showSnackbar: (snackbar: Pick<Snackbar, 'message' | 'status'>) => void;
 } | null>(null);
 
 const TIMEOUT = 2000;
 
-type Toast = {
-    id: number;
-    message: string;
+const snackbarClassesByStatus: Record<Snackbar['status'], string> = {
+    error: 'border-red-700 bg-red-100',
+    success: 'border-green-700 bg-green-100',
 }
 
 export const useSnackbar = () => {
@@ -23,16 +29,16 @@ export const useSnackbar = () => {
 
 export default function SnackbarProvider({ children }: { children: ReactNode }) {
     const timeoutIds = useRef<number[]>([]);
-    const [toasts, setToasts] = useState<Toast[]>([]);
-    const toastIdCounter = useRef(0);
+    const [snackbars, setSnackbars] = useState<Snackbar[]>([]);
+    const snackbarIdCounter = useRef(0);
 
-    const showSnackbar = useCallback((message: string) => {
-        const newToast = { message, id: toastIdCounter.current++ };
+    const showSnackbar = useCallback((snackbar: Pick<Snackbar, 'message' | 'status'>) => {
+        const newToast = { ...snackbar, id: snackbarIdCounter.current++ };
 
-        setToasts(prev => [...prev, newToast]);
+        setSnackbars(prev => [...prev, newToast]);
 
         const timeoutId = window.setTimeout(() => {
-            setToasts(prev => prev.filter(toast => toast !== newToast));
+            setSnackbars(prev => prev.filter(snackbar => snackbar !== newToast));
         }, TIMEOUT);
 
         timeoutIds.current.push(timeoutId);
@@ -50,9 +56,9 @@ export default function SnackbarProvider({ children }: { children: ReactNode }) 
         <SnackbarContext.Provider value={contextValue}>
             {children}
             <div className="fixed bottom-3 w-full flex flex-col gap-3 items-center">
-                {toasts.map(toast => (
-                    <div key={toast.id} className="px-4 py-2 border border-red-700 rounded w-2/6 bg-red-100">
-                        {toast.message}
+                {snackbars.map(snackbar => (
+                    <div key={snackbar.id} className={`px-4 py-2 border rounded w-2/6 ${snackbarClassesByStatus[snackbar.status]}`}>
+                        {snackbar.message}
                     </div>
                 ))}
             </div>
