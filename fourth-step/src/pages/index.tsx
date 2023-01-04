@@ -33,7 +33,7 @@ const Home: NextPage = () => {
 
             const previousTodos = utils.todos.getAll.getData() ?? EMPTY_ARRAY;
 
-            utils.todos.getAll.setData(undefined, [...previousTodos, { name: newTodo, id: tempId--, completed: false }]);
+            utils.todos.getAll.setData(undefined, [...previousTodos, { value: newTodo, id: tempId--, completed: false }]);
 
             return { previousTodos };
         },
@@ -44,14 +44,14 @@ const Home: NextPage = () => {
             utils.todos.getAll.invalidate();
         }
     });
-    const toggleCompleteMutation = trpc.todos.toggleCompleteTodo.useMutation({
-        onMutate: async (todoId) => {
+    const setCompletedMutation = trpc.todos.setCompleted.useMutation({
+        onMutate: async ({ id }) => {
             await utils.todos.getAll.cancel();
 
             const previousTodos = utils.todos.getAll.getData() ?? EMPTY_ARRAY;
 
             utils.todos.getAll.setData(undefined, previousTodos.map(todo => {
-                if (todo.id === todoId) {
+                if (todo.id === id) {
                     return { ...todo, completed: !todo.completed };
                 }
 
@@ -68,8 +68,8 @@ const Home: NextPage = () => {
         }
     });
     const uploadFileMutation = trpc.todos.uploadFile.useMutation({
-        onSuccess: () => {
-            showSnackbar({ message: 'TODOs are well imported', status: 'success' });
+        onSuccess: (data) => {
+            showSnackbar({ message: `${data.count} TODOs has been imported`, status: 'success' });
         },
         onError: (error) => {
             // Can use `error.data.code` or `error.data.httpStatus`
@@ -152,12 +152,12 @@ const Home: NextPage = () => {
                                 todos.data.map(todo => (
                                     <li key={todo.id} className="border-b border-slate-100 flex flex-row gap-3 items-center px-4 py-2 ">
                                         <input type="checkbox" className="ml-2" checked={todo.completed} onChange={async () => {
-                                            await toggleCompleteMutation.mutateAsync(todo.id);
+                                            await setCompletedMutation.mutateAsync({ id: todo.id, completed: !todo.completed });
 
                                             utils.todos.getAll.invalidate();
                                         }} />
                                         <label className={`block ${todo.completed && 'line-through text-gray-400'}`}>
-                                            {todo.name}
+                                            {todo.value}
                                         </label>
                                     </li>
                                 ))

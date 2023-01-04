@@ -2,53 +2,35 @@ import { z } from "zod";
 
 import { router, publicProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
-import { publicDecrypt } from "crypto";
-
-type Todo = {
-    id: number;
-    name: string;
-    completed: boolean;
-}
-
-let index = 0;
-
-let todos: Todo[] = [];
 
 export const todosRouter = router({
-    getAll: publicProcedure.query(() => {
+    getAll: publicProcedure.query(async ({ ctx: { prisma } }) => {
+        const todos = await prisma.todo.findMany();
+
         return todos;
     }),
     addTodo: publicProcedure
         .input(z.string())
-        .mutation((request) => {
-            const { input: newTodo } = request;
+        .mutation(async ({ input: newTodo, ctx: { prisma } }) => {
 
-            todos.push({ id: index++, name: newTodo, completed: false });
+            const todoEntity = await prisma.todo.create({ data: { value: newTodo, completed: false } });
 
-            return todos;
+            return todoEntity;
         }),
     clearTodos: publicProcedure
-        .mutation(() => {
-            todos = [];
+        .mutation(async ({ ctx: { prisma } }) => {
+            await prisma.todo.deleteMany();
         }),
-    toggleCompleteTodo: publicProcedure
-        .input(z.number())
-        .mutation((request) => {
-            const { input: todoId } = request;
+    setCompleted: publicProcedure
+        .input(z.object({ id: z.string(), completed: z.boolean() }))
+        .mutation(async ({ input: { id: todoId, completed }, ctx: { prisma } }) => {
+            const updatedTodo = prisma.todo.update({ data: { completed }, where: { id: todoId } });
 
-            const matchingTodo = todos.find(({ id }) => id === todoId);
-
-            if (matchingTodo) {
-                matchingTodo.completed = !matchingTodo.completed;
-            }
-
-            return todos;
+            return updatedTodo;
         }),
     uploadFile: publicProcedure
         .input(z.object({ content: z.string() }))
-        .mutation(request => {
-            const { input: upload } = request;
-
+        .mutation(async ({ input: upload, ctx: { prisma } }) => {
             let base64FileContent = upload.content.split(';base64,').pop();
 
             if (!base64FileContent) {
@@ -71,15 +53,9 @@ export const todosRouter = router({
                 });
             }
 
-            newTodos.forEach(todo => {
-                todos.push({
-                    id: index++,
-                    name: todo,
-                    completed: false,
-                });
-            })
+            const todosCreated = await prisma.todo.createMany({ data: newTodos.map(todo => ({ value: todo, completed: false })) });
 
-            return newTodos;
+            return todosCreated;
         }),
 });
 
