@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { router, publicProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
+import { publicDecrypt } from "crypto";
 
 type Todo = {
     id: number;
@@ -11,7 +12,7 @@ type Todo = {
 
 let index = 0;
 
-const todos: Todo[] = [];
+let todos: Todo[] = [];
 
 export const todosRouter = router({
     getAll: publicProcedure.query(() => {
@@ -25,6 +26,10 @@ export const todosRouter = router({
             todos.push({ id: index++, name: newTodo, completed: false });
 
             return todos;
+        }),
+    clearTodos: publicProcedure
+        .mutation(() => {
+            todos = [];
         }),
     toggleCompleteTodo: publicProcedure
         .input(z.number())

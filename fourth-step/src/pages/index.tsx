@@ -79,6 +79,11 @@ const Home: NextPage = () => {
             utils.todos.getAll.invalidate();
         }
     });
+    const clearTodosMutation = trpc.todos.clearTodos.useMutation({
+        onSettled: () => {
+            utils.todos.getAll.invalidate();
+        }
+    });
     const uploadInputRef = useRef<HTMLInputElement>(null);
 
     if (todos.isError) {
@@ -116,6 +121,12 @@ const Home: NextPage = () => {
                                 uploadInput.value = '';
                             }
                         }} />
+                        <button type="button"
+                            className="bg-transparent hover:bg-slate-400 text-slate-600 font-semibold hover:text-white py-2 px-4 border border-slate-400 hover:border-transparent rounded mr-2"
+                            onClick={() => clearTodosMutation.mutate()}
+                        >
+                            Clear todos
+                        </button>
                         <button type="button"
                             onClick={() => uploadInputRef.current?.click()}
                             className="bg-transparent hover:bg-slate-400 text-slate-600 font-semibold hover:text-white py-2 px-4 border border-slate-400 hover:border-transparent rounded"
