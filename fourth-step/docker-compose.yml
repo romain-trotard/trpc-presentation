@@ -1,0 +1,17 @@
+# Set the version of docker compose to use
+version: '3.3'
+
+# The containers that compose the project
+services:
+  db:
+    image: mysql:8.0.31
+    restart: always
+    container_name: integration-tests-todos-app
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_DATABASE: todos
+      MYSQL_USER: prisma
+      MYSQL_PASSWORD: prisma
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+

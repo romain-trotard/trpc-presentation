@@ -2,7 +2,7 @@
 
 This project has been generated thanks to [`create-t3-app`](https://create.t3.gg/).
 
-## How to run?
+## How to run the app?
 
 ### Prerequisites
 
@@ -69,5 +69,19 @@ Then you can run the server:
 
 ```bash
 yarn start
+```
+
+## How to run tests?
+
+When launching test you have to run the `mysql` docker container:
+
+```bash
+yarn docker:up
+```
+
+Then, you can run the integrations tests:
+
+```bash
+yarn cypress:headless
 ```
 
