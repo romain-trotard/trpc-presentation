@@ -6,7 +6,9 @@ This project has been generated thanks to [`create-t3-app`](https://create.t3.gg
 
 ### Prerequisites
 
-- First of all, make sure to have installed dependency.
+1. Install dependencies
+
+First of all, make sure to have installed dependency.
 
 For example using `yarn`:
 
@@ -14,12 +16,13 @@ For example using `yarn`:
 yarn
 ```
 
-- Then there is some env variable to fill.
+2. Then there is some env variables to fill.
 
--- I am using a mysql database managed by [`Prisma`](https://www.prisma.io/docs). Thanks to [`planetscale`](https://planetscale.com/), I can have a free database. 
+- I am using a mysql database managed by [`Prisma`](https://www.prisma.io/docs). Thanks to [`planetscale`](https://planetscale.com/), I can have a free database. 
 You can create an account and a database. You will have to get the creadentials to connect to it and fill the followind env variable:
 
-|| Variable name || Description ||
+| Variable name | Description |
+| ------------- | ----------- |
 | DATABASE_URL | This is the url to connect to the database. If you use planetscale, this value can be gotten thanks to the **Connect** button. | 
 
 > **Note:** If you use **Planetscale** you will have to connect to the database in a terminal thanks to: `pscale connect yourDatabaseName`.
@@ -32,13 +35,14 @@ yarn schema:push
 
 > **Note:** The schema should be already be generated.
 
--- I am using [`NextAuth.js`](https://next-auth.js.org/) to do some authentification with **Github**. To make it works you will have to create 
+- I am using [`NextAuth.js`](https://next-auth.js.org/) to do some authentification with **Github**. To make it works you will have to create 
 a **Github Apps** (under `Developper settings`).
 
 You have to fill the **Callback URL** with: `http://localhost:3000/`. And generate **Client Secrets** that you will put in `.env` file:
 
 
-|| Variable name || Description ||
+| Variable name | Description |
+| ------------- | ----------- |
 | GITHUB_ID | The **Client ID** value. |
 | GITHUB_SECRET | The generated **Client Secret** value. |
 | NEXTAUTH_SECRET | Used to encrypt JWT token. You can generate one thanks to `openssl rand -base64 32` |
