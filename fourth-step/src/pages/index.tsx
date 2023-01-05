@@ -1,4 +1,5 @@
 import { type NextPage } from "next";
+import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRef, useState } from "react";
 import { useSnackbar } from "../components/notifications/SnackbarProvider";
@@ -21,6 +22,56 @@ function getBase64(file: File) {
     });
 }
 
+const AuthButtons = () => {
+    const { data: session } = useSession();
+    const utils = trpc.useContext();
+    const clearTodosMutation = trpc.todos.clearTodos.useMutation({
+        onMutate: async () => {
+            await utils.todos.getAll.cancel();
+
+            const previousTodos = utils.todos.getAll.getData() ?? EMPTY_ARRAY;
+
+            utils.todos.getAll.setData(undefined, []);
+
+            return { previousTodos };
+        },
+        onError: (_err, _newTodo, context) => {
+            utils.todos.getAll.setData(undefined, context!.previousTodos);
+        },
+        onSettled: () => {
+            utils.todos.getAll.invalidate();
+        }
+    });
+
+    if (session) {
+        return (
+            <>
+                <button type="button"
+                    className="bg-transparent hover:bg-slate-400 text-slate-600 font-semibold hover:text-white py-2 px-4 border border-slate-400 hover:border-transparent rounded mr-2"
+                    onClick={() => signOut()}
+                >
+                    Sign out {session.user?.name}
+                </button>
+                <button type="button"
+                    className="bg-transparent hover:bg-slate-400 text-slate-600 font-semibold hover:text-white py-2 px-4 border border-slate-400 hover:border-transparent rounded mr-2"
+                    onClick={() => clearTodosMutation.mutate()}
+                >
+                    Clear todos
+                </button>
+            </>
+        );
+    }
+
+    return (
+        <button type="button"
+            className="bg-transparent hover:bg-slate-400 text-slate-600 font-semibold hover:text-white py-2 px-4 border border-slate-400 hover:border-transparent rounded mr-2"
+            onClick={() => signIn()}
+        >
+            Sign-in
+        </button>
+    );
+}
+
 const Home: NextPage = () => {
     const [inputValue, setInputValue] = useState('');
     const utils = trpc.useContext();
@@ -33,7 +84,7 @@ const Home: NextPage = () => {
 
             const previousTodos = utils.todos.getAll.getData() ?? EMPTY_ARRAY;
 
-            utils.todos.getAll.setData(undefined, [...previousTodos, { value: newTodo, id: tempId--, completed: false }]);
+            utils.todos.getAll.setData(undefined, [...previousTodos, { value: newTodo, id: `${tempId--}`, completed: false }]);
 
             return { previousTodos };
         },
@@ -79,11 +130,6 @@ const Home: NextPage = () => {
             utils.todos.getAll.invalidate();
         }
     });
-    const clearTodosMutation = trpc.todos.clearTodos.useMutation({
-        onSettled: () => {
-            utils.todos.getAll.invalidate();
-        }
-    });
     const uploadInputRef = useRef<HTMLInputElement>(null);
 
     if (todos.isError) {
@@ -121,12 +167,7 @@ const Home: NextPage = () => {
                                 uploadInput.value = '';
                             }
                         }} />
-                        <button type="button"
-                            className="bg-transparent hover:bg-slate-400 text-slate-600 font-semibold hover:text-white py-2 px-4 border border-slate-400 hover:border-transparent rounded mr-2"
-                            onClick={() => clearTodosMutation.mutate()}
-                        >
-                            Clear todos
-                        </button>
+                        <AuthButtons />
                         <button type="button"
                             onClick={() => uploadInputRef.current?.click()}
                             className="bg-transparent hover:bg-slate-400 text-slate-600 font-semibold hover:text-white py-2 px-4 border border-slate-400 hover:border-transparent rounded"

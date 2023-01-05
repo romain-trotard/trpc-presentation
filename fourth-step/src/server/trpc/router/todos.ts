@@ -1,11 +1,13 @@
 import { z } from "zod";
 
-import { router, publicProcedure } from "../trpc";
+import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 
 export const todosRouter = router({
-    getAll: publicProcedure.query(async ({ ctx: { prisma } }) => {
+    getAll: publicProcedure.query(async ({ ctx: { prisma, session } }) => {
         const todos = await prisma.todo.findMany();
+
+        console.log('the session is ', session);
 
         return todos;
     }),
@@ -17,7 +19,7 @@ export const todosRouter = router({
 
             return todoEntity;
         }),
-    clearTodos: publicProcedure
+    clearTodos: protectedProcedure
         .mutation(async ({ ctx: { prisma } }) => {
             await prisma.todo.deleteMany();
         }),
