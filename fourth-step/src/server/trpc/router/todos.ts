@@ -34,7 +34,7 @@ export const todosRouter = router({
     uploadFile: publicProcedure
         .input(z.object({ content: z.string() }))
         .mutation(async ({ input: upload, ctx: { prisma } }) => {
-            let base64FileContent = upload.content.split(';base64,').pop();
+            const base64FileContent = upload.content.split(';base64,').pop();
 
             if (!base64FileContent) {
                 throw new TRPCError({

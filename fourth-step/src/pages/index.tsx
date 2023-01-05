@@ -11,7 +11,7 @@ let tempId = Number.MAX_SAFE_INTEGER;
 
 function getBase64(file: File) {
     return new Promise<string>((resolve, reject) => {
-        var reader = new FileReader();
+        const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = function() {
             resolve(reader.result as string);
