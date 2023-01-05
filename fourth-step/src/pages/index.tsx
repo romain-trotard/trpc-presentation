@@ -25,6 +25,7 @@ function getBase64(file: File) {
 const AuthButtons = () => {
     const { data: session } = useSession();
     const utils = trpc.useContext();
+    const { showSnackbar } = useSnackbar();
     const clearTodosMutation = trpc.todos.clearTodos.useMutation({
         onMutate: async () => {
             await utils.todos.getAll.cancel();
@@ -35,8 +36,13 @@ const AuthButtons = () => {
 
             return { previousTodos };
         },
-        onError: (_err, _newTodo, context) => {
+        onError: (err, _newTodo, context) => {
             utils.todos.getAll.setData(undefined, context!.previousTodos);
+
+            // This should never happened because the button is not displayed in this case but just in case
+            if (err.data?.code === 'UNAUTHORIZED') {
+                showSnackbar({ status: 'error', message: 'You need to be authenticated to clear the list' });
+            }
         },
         onSettled: () => {
             utils.todos.getAll.invalidate();
@@ -183,7 +189,7 @@ const Home: NextPage = () => {
                             onKeyDown={(e) => {
                                 const trimmedValue = inputValue.trim();
 
-                                if (e.code === 'Enter' && trimmedValue !== '') {
+                                if (e.key === 'Enter' && trimmedValue !== '') {
                                     addTodoMutation.mutate(inputValue);
                                 }
                             }}
