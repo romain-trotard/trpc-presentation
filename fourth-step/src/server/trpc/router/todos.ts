@@ -19,10 +19,11 @@ export const todosRouter = router({
         }),
     clearTodos: protectedProcedure
         .mutation(async ({ ctx: { prisma, session } }) => {
-            await prisma.todo.deleteMany();
-
-            // Track who deletes all todos
-            await prisma.todoClear.create({ data: { username: session.user.name ?? 'No username' } });
+            await prisma.$transaction([
+                prisma.todo.deleteMany(),
+                // Track who deletes all todos
+                prisma.todoClear.create({ data: { username: session.user.name ?? 'No username' } }),
+            ]);
         }),
     setCompleted: publicProcedure
         .input(z.object({ id: z.string(), completed: z.boolean() }))
